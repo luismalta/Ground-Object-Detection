@@ -1,0 +1,191 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.amber-lime.min.css" />
+<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+<script type="text/javascript" src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+<script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+
+<html>
+  <header>
+    <script type="text/javascript" src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+  <script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+
+  <script type="text/javascript" type="text/javascript">
+      // Connecting to ROS
+      // -----------------
+
+      var ros = new ROSLIB.Ros({
+        url : 'ws://localhost:9090'
+      });
+
+      ros.on('connection', function() {
+        console.log('Connected to websocket server.');
+      });
+
+      ros.on('error', function(error) {
+        console.log('Error connecting to websocket server: ', error);
+      });
+
+      ros.on('close', function() {
+        console.log('Connection to websocket server closed.');
+      });
+
+      function takeoff() {
+            var takeoff_pub = new ROSLIB.Topic({
+            ros : ros,
+            name : '/bebop/takeoff',
+            messageType : 'std_msgs/Empty'
+          });
+
+          var Empty = new ROSLIB.Message({
+
+          });
+          takeoff_pub.publish(Empty);
+      }
+
+      function land() {
+            var land_pub = new ROSLIB.Topic({
+            ros : ros,
+            name : '/bebop/land',
+            messageType : 'std_msgs/Empty'
+          });
+
+          var Empty = new ROSLIB.Message({
+
+          });
+          land_pub.publish(Empty);
+      }
+
+
+      //altitude listener
+      var altitude_listener = new ROSLIB.Topic({
+        ros : ros,
+        name : 'states/ardrone3/PilotingState/AutoTakeOffModeChanged',
+        messageType : 'bebop_msgs/Ardrone3PilotingStateAutoTakeOffModeChanged'
+      });
+
+      altitude_listener.subscribe(function(message) {
+        console.log('Received message on ' + altitude_listener.name + ': ' + message.altitude);
+        document.getElementById('altitude').innerHTML = "ALTITUDE: " + message.altitude;
+
+      });
+
+      //Listener battery
+      var bateria_listener = new ROSLIB.Topic({
+        ros : ros,
+        name : 'states/common/CommonState/BatteryStateChanged',
+        messageType : 'bebop_msgs/CommonCommonStateBatteryStateChanged'
+      });
+
+      bateria_listener.subscribe(function(message) {
+        console.log('Received message on ' + bateria_listener.name + ': ' + message.percent);
+        document.getElementById('bateria').innerHTML = "BATERIA: " + message.percent;
+
+      });
+
+
+      //Listener satelites
+      var satelite_listener = new ROSLIB.Topic({
+        ros : ros,
+        name : 'states/ardrone3/GPSState/NumberOfSatelliteChanged',
+        messageType : 'bebop_msgs/Ardrone3GPSStateNumberOfSatelliteChanged'
+      });
+
+      satelite_listener.subscribe(function(message) {
+        console.log('Received message on ' + satelite_listener.name + ': ' + message.numberOfSatellite);
+        document.getElementById('satelites').innerHTML = "SATELITES: " + message.numberOfSatellite;
+
+      });
+
+
+
+    </script>
+
+
+    <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+    <div class="mdl-tabs__tab-bar">
+        <a href="#controle-panel" class="mdl-tabs__tab is-active"><font>controle</font></a>
+        <a href="#reconhecimento-panel" class="mdl-tabs__tab">reconhecimento</a>
+    </div>
+
+    <div class="mdl-tabs__panel is-active" id="controle-panel">
+
+      <!-- Wide card with share menu button -->
+      <style>
+      .demo-card-wide.mdl-card {
+        width: 300px;
+        margin: auto;
+        margin-top: 10px;
+        margin-left: 60px;
+        float:left;
+      }
+      .demo-card-wide > .mdl-card__title {
+        color: #fff;
+        height: 176px;
+        background: url('../assets/demos/welcome_card.jpg') center / cover;
+      }
+      .demo-card-wide > .mdl-card__menu {
+        color: #fff;
+      }
+
+
+      </style>
+
+      <style type="text/css">
+        #bt-connect{
+          margin: auto;
+        }
+
+        #bt-takeoff{
+          margin: auto;
+        }
+
+        #bt-land{
+          margin: auto;
+        }
+      </style>
+
+  </header>
+
+  <body>
+
+          <div class="demo-card-wide mdl-card mdl-shadow--2dp">
+
+            <div class="mdl-card__supporting-text">
+              <span id="altitude">ALTITUDE:</span></br>
+              <span id="bateria">BATERIA:</span></br>
+              <span id="satelite">SATELITES:</span></br>
+            </div>
+
+            <div class="mdl-card__menu">
+              <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect">
+                <i class="material-icons">share</i>
+              </button>
+            </div>
+          </div>
+
+
+          <div style="margin-top:10px; margin-left:10px; margin-right:200px; float:right">
+            <button  class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" style="width: 200px">
+                  CONNECT
+            </button>
+          </div>
+
+          <div style="margin-top:10px; margin-left:10px; margin-right:200px; float:right">
+            <button  onclick="takeoff()" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" style="width: 200px">
+                TAKEOFF
+            </button>
+          </div>
+
+          <div style="margin-top:10px; margin-left:10px; margin-right:200px; float:right">
+            <button onclick="land()" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" style="width: 200px">
+                LAND
+            </button>
+          </div>
+        </div>
+        <div class="mdl-tabs__panel" id="reconhecimento-panel">
+
+
+        </div>
+  </body>
+</html>
